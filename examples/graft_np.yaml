@@ -1,0 +1,11 @@
+np_radius: 5.0
+np_bead_spacing: 1.0
+num_grafts: 60
+chain_length: 20
+bond_length: 1.0
+walk: saw
+graft_mode: random
+min_site_distance: 0.0
+min_distance: 0.8
+seed: 1
+out: grafted_np.lammps

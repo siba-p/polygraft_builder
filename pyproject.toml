@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polygraft-builder"
+version = "0.1.0"
+description = "Build coarse-grained polymer chains and polymer-grafted nanoparticles."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  {name = "Polygraft Builder contributors"}
+]
+dependencies = [
+  "numpy>=1.23,<2.0"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=7"
+]
+
+[project.scripts]
+polygraft = "polygraft_builder.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
