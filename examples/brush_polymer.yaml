@@ -1,0 +1,10 @@
+architecture: brush
+backbone_length: 30
+side_chain_length: 6
+graft_every: 3
+fraction_a: 0.5
+bond_length: 1.0
+walk: saw
+min_distance: 0.8
+seed: 1
+out: brush.gro

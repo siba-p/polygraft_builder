@@ -47,4 +47,7 @@ def test_grafted_output_files_are_written(tmp_path):
 
     assert (tmp_path / "grafted_np.xyz").exists()
     assert (tmp_path / "grafted_np.lammps").exists()
+    assert (tmp_path / "grafted_np.gro").exists()
+    assert (tmp_path / "grafted_np.itp").exists()
+    assert (tmp_path / "grafted_np.top").exists()
     assert (tmp_path / "grafted_np.json").exists()

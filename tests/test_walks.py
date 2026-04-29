@@ -33,4 +33,7 @@ def test_chain_output_files_are_written(tmp_path):
 
     assert (tmp_path / "polymer.xyz").exists()
     assert (tmp_path / "polymer.lammps").exists()
+    assert (tmp_path / "polymer.gro").exists()
+    assert (tmp_path / "polymer.itp").exists()
+    assert (tmp_path / "polymer.top").exists()
     assert (tmp_path / "polymer.json").exists()

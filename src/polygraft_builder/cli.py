@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
+from .architectures import build_polymer
 from .grafting import build_grafted_nanoparticle
 from .io import write_system_outputs
 from .nanoparticle import build_nanoparticle
 from .sequence import generate_ising_sequence, generate_random_sequence, save_sequence_outputs
-from .walks import build_chain
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -28,7 +27,8 @@ def main(argv: list[str] | None = None) -> None:
     sequence_parser.add_argument("--out", default="sequence.txt")
     sequence_parser.set_defaults(func=_sequence_command)
 
-    chain_parser = subparsers.add_parser("chain", help="build a single polymer chain")
+    chain_parser = subparsers.add_parser("chain", help="build a polymer chain or nonlinear architecture")
+    chain_parser.add_argument("--architecture", choices=["linear", "star", "brush"], default="linear")
     chain_parser.add_argument("--chain-length", type=int)
     chain_parser.add_argument("--sequence")
     chain_parser.add_argument("--fraction-a", type=float, default=0.5)
@@ -36,6 +36,11 @@ def main(argv: list[str] | None = None) -> None:
     chain_parser.add_argument("--walk", choices=["random", "saw"], default="random")
     chain_parser.add_argument("--min-distance", type=float, default=0.8)
     chain_parser.add_argument("--max-retries", type=int, default=5000)
+    chain_parser.add_argument("--num-arms", type=int, default=4)
+    chain_parser.add_argument("--arm-length", type=int)
+    chain_parser.add_argument("--backbone-length", type=int)
+    chain_parser.add_argument("--side-chain-length", type=int, default=5)
+    chain_parser.add_argument("--graft-every", type=int, default=2)
     chain_parser.add_argument("--seed", type=int)
     chain_parser.add_argument("--out", default="polymer.xyz")
     chain_parser.set_defaults(func=_chain_command)
@@ -95,7 +100,8 @@ def _sequence_command(args: argparse.Namespace) -> None:
 
 
 def _chain_command(args: argparse.Namespace) -> None:
-    system = build_chain(
+    system = build_polymer(
+        architecture=args.architecture,
         chain_length=args.chain_length,
         sequence=args.sequence,
         fraction_a=args.fraction_a,
@@ -104,15 +110,20 @@ def _chain_command(args: argparse.Namespace) -> None:
         min_distance=args.min_distance,
         seed=args.seed,
         max_retries=args.max_retries,
+        num_arms=args.num_arms,
+        arm_length=args.arm_length,
+        backbone_length=args.backbone_length,
+        side_chain_length=args.side_chain_length,
+        graft_every=args.graft_every,
     )
     paths = write_system_outputs(system, args.out)
-    print(f"wrote {paths['xyz']}, {paths['lammps']}, {paths['json']}")
+    _print_paths(paths)
 
 
 def _nanoparticle_command(args: argparse.Namespace) -> None:
     system = build_nanoparticle(args.np_radius, args.np_bead_spacing, args.surface_only)
     paths = write_system_outputs(system, args.out)
-    print(f"wrote {paths['xyz']}, {paths['lammps']}, {paths['json']}")
+    _print_paths(paths)
 
 
 def _graft_command(args: argparse.Namespace) -> None:
@@ -131,7 +142,11 @@ def _graft_command(args: argparse.Namespace) -> None:
         max_retries=args.max_retries,
     )
     paths = write_system_outputs(system, args.out)
-    print(f"wrote {paths['xyz']}, {paths['lammps']}, {paths['json']}")
+    _print_paths(paths)
+
+
+def _print_paths(paths: dict[str, str]) -> None:
+    print("wrote " + ", ".join(paths[key] for key in sorted(paths)))
 
 
 def _parse_bool(value: str | bool) -> bool:

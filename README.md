@@ -9,9 +9,10 @@ ML_surfacepoly and KG_PGNs workflows:
 - binary A/B polymer sequences represented as `+1/-1`
 - random and Ising-like correlated sequence generation
 - random-walk and self-avoiding-walk chain construction
+- linear, star, and bottlebrush polymer architectures
 - spherical nanoparticle bead generation and surface-site detection
 - simple grafting of many chains to nanoparticle surface beads
-- XYZ, LAMMPS data, and JSON metadata output
+- XYZ, LAMMPS data, GROMACS, and JSON metadata output
 
 ## Install
 
@@ -40,6 +41,18 @@ Build a single self-avoiding-walk chain:
 polygraft chain --chain-length 40 --walk saw --bond-length 1.0 --min-distance 0.8 --seed 1 --out polymer_saw.xyz
 ```
 
+Build a star polymer:
+
+```bash
+polygraft chain --architecture star --num-arms 6 --arm-length 12 --walk saw --seed 1 --out star.gro
+```
+
+Build a bottlebrush polymer:
+
+```bash
+polygraft chain --architecture brush --backbone-length 30 --side-chain-length 6 --graft-every 3 --walk saw --seed 1 --out brush.gro
+```
+
 Build a grafted nanoparticle:
 
 ```bash
@@ -54,10 +67,13 @@ polygraft nanoparticle --np-radius 5.0 --np-bead-spacing 1.0 --surface-only fals
 
 ## Outputs
 
-Builder commands write a complete trio of files:
+Builder commands write a complete portable output set:
 
 - `.xyz` for quick visualization
 - `.lammps` for a minimal LAMMPS molecular data file
+- `.gro` for GROMACS coordinates
+- `.itp` for a minimal GROMACS molecule include file
+- `.top` for a minimal GROMACS topology that includes the `.itp`
 - `.json` for metadata, sequence, atom types, bonds, and selected graft sites
 
 Sequence generation writes:
@@ -69,11 +85,14 @@ Sequence generation writes:
 ## Python API
 
 ```python
-from polygraft_builder import build_chain, build_grafted_nanoparticle
+from polygraft_builder import build_chain, build_grafted_nanoparticle, build_star_polymer
 from polygraft_builder.io import write_system_outputs
 
 chain = build_chain(chain_length=40, walk="saw", seed=1)
 write_system_outputs(chain, "polymer.xyz")
+
+star = build_star_polymer(num_arms=6, arm_length=12, walk="saw", seed=1)
+write_system_outputs(star, "star.gro")
 
 grafted = build_grafted_nanoparticle(
     np_radius=5.0,
@@ -92,9 +111,16 @@ This package intentionally avoids force-field complexity. Atom types are simple:
 - `1`: polymer A bead
 - `2`: polymer B bead
 - `3`: nanoparticle bead
+- `4`: polymer core bead, used by star polymers
 
-Bond type `1` is used for polymer backbone bonds, and bond type `2` connects the
-first polymer bead to its grafting site.
+Bond type `1` is used for polymer backbone bonds, bond type `2` connects a
+polymer bead to a nanoparticle graft site, bond type `3` connects star arms to
+the core, and bond type `4` connects bottlebrush side chains to the backbone.
+
+The GROMACS files are deliberately minimal coarse-grained starting points:
+coordinates in `.gro`, atoms and bonds in `.itp`, and generic atom types in
+`.top`. Add your preferred bonded and nonbonded force-field parameters before
+production simulation.
 
 ## Tests
 
